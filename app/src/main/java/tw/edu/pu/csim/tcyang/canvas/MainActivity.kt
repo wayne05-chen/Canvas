@@ -50,69 +50,76 @@ class MainActivity : ComponentActivity() {
 }
 @Composable
 fun TestCanvas(modifier: Modifier = Modifier) {
-    var CanvasWidth by remember { mutableStateOf( 0f) }
-    var CamvaHeight by remember { mutableStateOf( 0f) }
-    var ninionsX by remember { mutableStateOf( 0f) }
-    var ninionsY by remember { mutableStateOf( 0f) }
+    var CanvasWidth by remember { mutableStateOf(0f) }
+    var CamvaHeight by remember { mutableStateOf(0f) }
+    var ninionsX by remember { mutableStateOf(0f) }
+    var ninionsY by remember { mutableStateOf(0f) }
     var gameOver by remember { mutableStateOf(false) }
-    val minionsImage: ImageBitmap =
-        ImageBitmap.imageResource(id = R.drawable.minions)
-    LaunchedEffect(Unit) {
+    val minionsImage: ImageBitmap = ImageBitmap.imageResource(id = R.drawable.minions)
+
+    LaunchedEffect(key1 = Unit) {
         while (!gameOver) {
-            delay(timeMillis = 1000L)
-            ninionsX += 5
-            ninionsY += 10
+            delay(timeMillis = 16L) // 建議調小延遲（例如 16ms 約 60fps），移動會更加平滑
+
+            ninionsX += 5f
+            ninionsY += 10f
+
+            // 當畫布寬高已取得，且小小兵超出畫布右方或下方時重置回原點
+            if (CanvasWidth > 0f && CamvaHeight > 0f) {
+                if (ninionsX > CanvasWidth || ninionsY > CamvaHeight) {
+                    ninionsX = 0f
+                    ninionsY = 0f
+                }
+            }
         }
     }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-
         Canvas(
             modifier = Modifier.fillMaxSize()
         ) {
+            // 修正：原本第二行誤寫為 CanvasWidth
             CanvasWidth = size.width
-            CanvasWidth = size.height
+            CamvaHeight = size.height
+
             drawCircle(
-                Color.Magenta,
-                100f,
-                Offset(100f, 100f)
+                color = Color.Magenta,
+                radius = 100f,
+                center = Offset(x = 100f, y = 100f)
             )
 
-            //繪製藍色空心矩形, 左上角 (300,200), 寬度與高度 200
+            // 繪製藍色空心矩形，左上角 (300, 200)，寬度與高度 200
             drawRect(
-                Color.Blue,
-                Offset(300f, 200f),
-                Size(200f, 200f),
+                color = Color.Blue,
+                topLeft = Offset(x = 300f, y = 200f),
+                size = Size(width = 200f, height = 200f),
                 style = Stroke(width = 5f) // 使用 style 控制外框樣式
             )
+
             drawLine(
-                Color.Red,
-                Offset(200f, 800f),
-                Offset(size.width, size.height),
+                color = Color.Red,
+                start = Offset(x = 200f, y = 800f),
+                end = Offset(x = size.width, y = size.height),
                 strokeWidth = 10f
             )
 
             val minionsWidth = minionsImage.width
             val minionsHeight = minionsImage.height
 
-            // 置中公式：(畫布寬高 - 圖片寬高) / 2f
-            val offsetX = (size.width - minionsWidth) / 2f
-            val offsetY = (size.height - minionsHeight) / 2f
-
-            // 將畫布起點移至置中位置後畫圖
-            translate(ninionsX, ninionsY) {
+            // 將畫布起點移動至 ninionsX, ninionsY 後繪圖
+            translate(left = ninionsX, top = ninionsY) {
                 drawImage(minionsImage)
             }
-
         }
+
         Column {
-            Text("畫布寬度$CanvasWidth,長度 $CamvaHeight")
+            Text("畫布寬度 $CanvasWidth, 長度 $CamvaHeight")
 
             Button(
                 onClick = { gameOver = !gameOver }
-            )
-            {
+            ) {
                 if (gameOver) {
                     Text("繼續遊戲")
                 } else {
